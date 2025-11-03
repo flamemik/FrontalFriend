@@ -10,12 +10,35 @@ export default function HomeScreen() {
       <Text style={styles.title}>Frontal Friend</Text>
       <Text style={styles.subtitle}>Mental Health Support</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push('/chat')}
-      >
-        <Text style={styles.buttonText}>Start Chat</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/chat')}
+        >
+          <Text style={styles.buttonText}>Chat</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/relax')}
+        >
+          <Text style={styles.buttonText}>Relax</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/reminders')}
+        >
+          <Text style={styles.buttonText}>Reminders</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/physical-health')}
+        >
+          <Text style={styles.buttonText}>Physical Health</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -39,15 +62,28 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 40,
   },
+  buttonContainer: {
+    width: '100%',
+    maxWidth: 400,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 15,
+  },
   button: {
     backgroundColor: '#007AFF',
-    paddingHorizontal: 40,
-    paddingVertical: 15,
-    borderRadius: 10,
+    paddingHorizontal: 30,
+    paddingVertical: 30,
+    borderRadius: 15,
+    width: '48%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 120,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
