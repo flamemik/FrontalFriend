@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "check-media": "node scripts/check-media.js"
+  },
   "dependencies": {
     "firebase": "^12.4.0"
   }

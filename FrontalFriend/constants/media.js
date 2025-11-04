@@ -70,3 +70,11 @@ export const AUDIO_TRACKS = [
     uri: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d1718ab41b.mp3',
   },
 ];
+
+// NOTE:
+// The URIs above are hosted on external CDNs (Pixabay). These are runtime
+// dependencies outside the app's control and may become unavailable. Callers
+// should validate remote URIs and provide a local/static fallback (image or
+// message) when the CDN is unreachable. See `constants/mediaUtils.js` for a
+// small helper used by the Relax screen to sanity-check links and select a
+// fallback path when an asset cannot be reached.

@@ -11,19 +11,23 @@ import {
 import { useRouter } from 'expo-router';
 import { Video, Audio } from 'expo-av';
 import { MEDIA_CATEGORIES, AUDIO_TRACKS, THEME_COLORS } from '../constants/media';
+import { resolveRemoteUri } from '../constants/mediaUtils';
 
 const { width, height } = Dimensions.get('window');
 
 export default function RelaxScreen() {
   const router = useRouter();
   const videoRef = useRef(null);
-  const audioRef = useRef(null);
+  const soundRef = useRef(null);
 
   const [selectedCategory, setSelectedCategory] = useState(MEDIA_CATEGORIES[0]);
   const [selectedVideo, setSelectedVideo] = useState(MEDIA_CATEGORIES[0].videos[0]);
   const [selectedAudio, setSelectedAudio] = useState(AUDIO_TRACKS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [videoUri, setVideoUri] = useState(MEDIA_CATEGORIES[0].videos[0].uri);
+  const [videoUnavailable, setVideoUnavailable] = useState(false);
+  const [soundUnavailable, setSoundUnavailable] = useState(false);
 
   useEffect(() => {
     setupAudio();
@@ -31,6 +35,36 @@ export default function RelaxScreen() {
       cleanupMedia();
     };
   }, []);
+
+  // Resolve the selectedVideo URI and set a fallback state if unreachable
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setIsLoading(true);
+      try {
+        const resolved = await resolveRemoteUri(selectedVideo.uri, { timeout: 3000, fallback: null });
+        if (!mounted) return;
+        if (resolved) {
+          setVideoUri(resolved);
+          setVideoUnavailable(false);
+        } else {
+          setVideoUri(null);
+          setVideoUnavailable(true);
+        }
+      } catch (e) {
+        console.error('Error resolving video URI:', e);
+        if (mounted) {
+          setVideoUri(null);
+          setVideoUnavailable(true);
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [selectedVideo]);
 
   const setupAudio = async () => {
     try {
@@ -45,15 +79,97 @@ export default function RelaxScreen() {
     }
   };
 
+  // Load and manage audio programmatically using Audio.Sound
+  useEffect(() => {
+    let mounted = true;
+    const loadSound = async () => {
+      setIsLoading(true);
+      try {
+        // unload previous
+        if (soundRef.current) {
+          try {
+            await soundRef.current.unloadAsync();
+          } catch (e) {
+            // ignore
+          }
+          soundRef.current = null;
+        }
+
+        const resolved = await resolveRemoteUri(selectedAudio.uri, { timeout: 3000, fallback: null });
+        if (!resolved) {
+          // Mark unavailable and skip loading
+          setSoundUnavailable(true);
+          return;
+        }
+        setSoundUnavailable(false);
+
+        const result = await Audio.Sound.createAsync(
+          { uri: resolved },
+          { isLooping: true, shouldPlay: isPlaying }
+        );
+        if (!mounted) {
+          // In case component unmounted while loading
+          try {
+            result.sound.unloadAsync();
+          } catch (e) {}
+          return;
+        }
+        soundRef.current = result.sound;
+      } catch (error) {
+        console.error('Error loading sound:', error);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    loadSound();
+
+    return () => {
+      mounted = false;
+      (async () => {
+        if (soundRef.current) {
+          try {
+            await soundRef.current.unloadAsync();
+          } catch (e) {
+            // ignore
+          }
+          soundRef.current = null;
+        }
+      })();
+    };
+  }, [selectedAudio]);
+
+  // Sync playing state to the loaded sound when only isPlaying changes
+  useEffect(() => {
+    const syncPlay = async () => {
+      if (!soundRef.current) return;
+      try {
+        if (isPlaying) {
+          await soundRef.current.playAsync();
+        } else {
+          await soundRef.current.pauseAsync();
+        }
+      } catch (error) {
+        console.error('Error syncing sound play state:', error);
+      }
+    };
+    syncPlay();
+  }, [isPlaying]);
+
   const cleanupMedia = async () => {
     try {
       if (videoRef.current) {
         await videoRef.current.stopAsync();
         await videoRef.current.unloadAsync();
       }
-      if (audioRef.current) {
-        await audioRef.current.stopAsync();
-        await audioRef.current.unloadAsync();
+      if (soundRef.current) {
+        try {
+          await soundRef.current.stopAsync();
+        } catch (e) {
+          // ignore already-stopped
+        }
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
       }
     } catch (error) {
       console.error('Error cleaning up media:', error);
@@ -64,19 +180,22 @@ export default function RelaxScreen() {
     try {
       setIsLoading(true);
       if (isPlaying) {
-        if (videoRef.current) {
-          await videoRef.current.pauseAsync();
-        }
-        if (audioRef.current) {
-          await audioRef.current.pauseAsync();
+        // Let Video's shouldPlay control playback; only control audio programmatically
+        if (soundRef.current) {
+          try {
+            await soundRef.current.pauseAsync();
+          } catch (e) {
+            console.error('Error pausing sound:', e);
+          }
         }
         setIsPlaying(false);
       } else {
-        if (videoRef.current) {
-          await videoRef.current.playAsync();
-        }
-        if (audioRef.current) {
-          await audioRef.current.playAsync();
+        if (soundRef.current) {
+          try {
+            await soundRef.current.playAsync();
+          } catch (e) {
+            console.error('Error playing sound:', e);
+          }
         }
         setIsPlaying(true);
       }
@@ -90,14 +209,24 @@ export default function RelaxScreen() {
   const handleVideoChange = async (video) => {
     try {
       setIsLoading(true);
-      setSelectedVideo(video);
+      // Clean up existing video first to avoid overlapping load/unload
       if (videoRef.current) {
-        await videoRef.current.stopAsync();
-        await videoRef.current.unloadAsync();
+        try {
+          await videoRef.current.stopAsync();
+        } catch (e) {
+          // ignore if already stopped
+        }
+        try {
+          await videoRef.current.unloadAsync();
+        } catch (e) {
+          console.error('Error unloading previous video:', e);
+        }
       }
       if (isPlaying) {
         setIsPlaying(false);
       }
+      // Only set selected after cleanup completes
+      setSelectedVideo(video);
     } catch (error) {
       console.error('Error changing video:', error);
     } finally {
@@ -108,14 +237,25 @@ export default function RelaxScreen() {
   const handleAudioChange = async (audio) => {
     try {
       setIsLoading(true);
-      setSelectedAudio(audio);
-      if (audioRef.current) {
-        await audioRef.current.stopAsync();
-        await audioRef.current.unloadAsync();
+      // Clean up existing sound first to avoid overlapping load/unload
+      if (soundRef.current) {
+        try {
+          await soundRef.current.stopAsync();
+        } catch (e) {
+          // ignore
+        }
+        try {
+          await soundRef.current.unloadAsync();
+        } catch (e) {
+          console.error('Error unloading previous sound:', e);
+        }
+        soundRef.current = null;
       }
       if (isPlaying) {
         setIsPlaying(false);
       }
+      // Only set selected after cleanup completes
+      setSelectedAudio(audio);
     } catch (error) {
       console.error('Error changing audio:', error);
     } finally {
@@ -133,15 +273,23 @@ export default function RelaxScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.videoContainer}>
-        <Video
-          ref={videoRef}
-          source={{ uri: selectedVideo.uri }}
-          style={styles.video}
-          resizeMode="cover"
-          isLooping
-          shouldPlay={isPlaying}
-          isMuted
-        />
+        {videoUri && !videoUnavailable ? (
+          <Video
+            ref={videoRef}
+            source={{ uri: videoUri }}
+            style={styles.video}
+            resizeMode="cover"
+            isLooping
+            shouldPlay={isPlaying}
+            isMuted
+          />
+        ) : (
+          <View style={[styles.video, styles.videoPlaceholder]}>
+            <Text style={styles.placeholderText}>
+              Scene unavailable — unable to load remote video. Try a different scene.
+            </Text>
+          </View>
+        )}
         <View style={styles.overlay}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -232,6 +380,12 @@ export default function RelaxScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+            {soundUnavailable && (
+              <Text style={styles.unavailableText}>
+                Audio unavailable — unable to load remote track. Try a different
+                track.
+              </Text>
+            )}
           </View>
         </ScrollView>
 
@@ -250,12 +404,7 @@ export default function RelaxScreen() {
         </View>
       </View>
 
-      <Audio
-        ref={audioRef}
-        source={{ uri: selectedAudio.uri }}
-        isLooping
-        shouldPlay={isPlaying}
-      />
+      {/* Audio is loaded and controlled programmatically via Audio.Sound (soundRef) */}
     </View>
   );
 }
@@ -273,6 +422,16 @@ const styles = StyleSheet.create({
   video: {
     width: '100%',
     height: '100%',
+  },
+  videoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+  },
+  placeholderText: {
+    color: THEME_COLORS.text.light,
+    textAlign: 'center',
+    paddingHorizontal: 24,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -368,6 +527,11 @@ const styles = StyleSheet.create({
   },
   optionButtonTextActive: {
     color: THEME_COLORS.text.light,
+  },
+  unavailableText: {
+    marginTop: 8,
+    color: THEME_COLORS.text.primary,
+    fontStyle: 'italic',
   },
   playControlContainer: {
     position: 'absolute',

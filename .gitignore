@@ -59,3 +59,31 @@ tmp/
 temp/
 .cache/
 logs/
+
+# --- Prevent committing Windows reserved device names (e.g. NUL) ---
+# These device names are invalid as files on Windows and can be accidentally
+# committed when redirecting output. Ignore common device names to avoid
+# reintroducing such files into the repo.
+nul
+CON
+PRN
+AUX
+NUL
+COM1
+COM2
+COM3
+COM4
+COM5
+COM6
+COM7
+COM8
+COM9
+LPT1
+LPT2
+LPT3
+LPT4
+LPT5
+LPT6
+LPT7
+LPT8
+LPT9
