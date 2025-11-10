@@ -6,6 +6,7 @@ export default function RootLayout() {
     <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="login" />
         <Stack.Screen name="chat" />
         <Stack.Screen name="relax" />
         <Stack.Screen name="reminders" />
