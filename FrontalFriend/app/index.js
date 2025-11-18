@@ -7,36 +7,34 @@ import { onAuthStateChanged } from 'firebase/auth';
 export default function HomeScreen() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (currentUser) => {
       setUser(currentUser);
+      setLoading(false);
+
+      // If no user is logged in, redirect to login screen
+      if (!currentUser) {
+        router.replace('/login');
+      }
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Show loading or nothing while checking auth state
+  if (loading || !user) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
         <Text style={styles.title}>Frontal Friend</Text>
         <Text style={styles.subtitle}>Mental Health Support</Text>
-
-        {!user && (
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => router.push('/login')}
-          >
-            <Text style={styles.loginButtonText}>Login / Sign Up</Text>
-          </TouchableOpacity>
-        )}
-
-        {user && (
-          <Text style={styles.welcomeText}>Welcome back, {user.email}!</Text>
-        )}
+        <Text style={styles.welcomeText}>Welcome back, {user.email}!</Text>
       </View>
-
-      {!user && <View style={styles.divider} />}
 
       <Text style={styles.exploreText}>Explore Features</Text>
 
@@ -94,10 +92,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   topSection: {
-    flex: 1,
-    justifyContent: 'center',
+    paddingTop: 60,
+    paddingBottom: 20,
     alignItems: 'center',
-    paddingTop: 40,
   },
   title: {
     fontSize: 36,
@@ -108,27 +105,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 20,
     color: '#666',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  loginButton: {
-    width: '90%',
-    maxWidth: 400,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
+    marginBottom: 10,
     textAlign: 'center',
   },
   welcomeText: {
@@ -136,13 +113,7 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 10,
-  },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 20,
+    marginBottom: 20,
   },
   exploreText: {
     fontSize: 22,
