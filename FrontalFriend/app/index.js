@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FIREBASE_AUTH } from '../FirebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -23,6 +24,13 @@ export default function HomeScreen() {
     return () => unsubscribe();
   }, []);
 
+  // Get first name from email
+  const getFirstName = () => {
+    if (!user?.email) return 'Friend';
+    const emailName = user.email.split('@')[0];
+    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+  };
+
   // Show loading or nothing while checking auth state
   if (loading || !user) {
     return null;
@@ -30,57 +38,89 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topSection}>
-        <Text style={styles.title}>Frontal Friend</Text>
-        <Text style={styles.subtitle}>Mental Health Support</Text>
-        <Text style={styles.welcomeText}>Welcome back, {user.email}!</Text>
-      </View>
+      <LinearGradient
+        colors={['#3B7EBF', '#2E6BA8']}
+        style={styles.header}
+      >
+        <Text style={styles.greeting}>Hi {getFirstName()}!</Text>
+        <Text style={styles.welcomeMessage}>
+          Welcome, we're glad you're here. Where do you want to take your mental health today?
+        </Text>
+      </LinearGradient>
 
-      <Text style={styles.exploreText}>Explore Features</Text>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.cardsGrid}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/chat')}
+          >
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>💬</Text>
+            </View>
+            <Text style={styles.cardTitle}>Chat</Text>
+            <Text style={styles.cardDescription}>Talk with AI support anytime</Text>
+          </TouchableOpacity>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/chat')}
-        >
-          <Text style={styles.buttonText}>Chat</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/relax')}
+          >
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>🧘</Text>
+            </View>
+            <Text style={styles.cardTitle}>Relax</Text>
+            <Text style={styles.cardDescription}>Calm your mind with videos</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/relax')}
-        >
-          <Text style={styles.buttonText}>Relax</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/reminders')}
+          >
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>⏰</Text>
+            </View>
+            <Text style={styles.cardTitle}>Reminders</Text>
+            <Text style={styles.cardDescription}>Stay on track with alerts</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/reminders')}
-        >
-          <Text style={styles.buttonText}>Reminders</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/physical-health')}
+          >
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>💪</Text>
+            </View>
+            <Text style={styles.cardTitle}>Physical Health</Text>
+            <Text style={styles.cardDescription}>Track your wellness</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/physical-health')}
-        >
-          <Text style={styles.buttonText}>Physical Health</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/contact')}
+          >
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>📞</Text>
+            </View>
+            <Text style={styles.cardTitle}>Contact</Text>
+            <Text style={styles.cardDescription}>Reach out for help</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/contact')}
-        >
-          <Text style={styles.buttonText}>Contact</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/important-documents')}
-        >
-          <Text style={styles.buttonText}>Important Documents</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/important-documents')}
+          >
+            <View style={styles.iconPlaceholder}>
+              <Text style={styles.iconText}>📄</Text>
+            </View>
+            <Text style={styles.cardTitle}>Documents</Text>
+            <Text style={styles.cardDescription}>Important information</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -88,64 +128,78 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
+    backgroundColor: '#F5F7FA',
   },
-  topSection: {
+  header: {
     paddingTop: 60,
-    paddingBottom: 20,
-    alignItems: 'center',
+    paddingBottom: 30,
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 36,
+  greeting: {
+    fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+    color: '#FFFFFF',
+    marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 20,
-    color: '#666',
-    marginBottom: 10,
-    textAlign: 'center',
+  welcomeMessage: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    lineHeight: 24,
+    opacity: 0.95,
   },
-  welcomeText: {
-    fontSize: 18,
-    color: '#4CAF50',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 20,
+  content: {
+    flex: 1,
   },
-  exploreText: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 15,
-    alignSelf: 'center',
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
   },
-  buttonContainer: {
-    width: '100%',
-    maxWidth: 400,
+  cardsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 15,
-    alignSelf: 'center',
-    marginBottom: 20,
+    gap: 16,
   },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 30,
-    paddingVertical: 30,
-    borderRadius: 15,
-    width: '48%',
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '47%',
+    aspectRatio: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+  iconPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#E8F4F8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  iconText: {
+    fontSize: 28,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E3A5F',
+    marginBottom: 6,
     textAlign: 'center',
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
