@@ -42,7 +42,13 @@ export default function HomeScreen() {
         colors={['#3B7EBF', '#2E6BA8']}
         style={styles.header}
       >
+            <View style={styles.headerRow}>
         <Text style={styles.greeting}>Hi {getFirstName()}!</Text>
+        <Text style={styles.logout} onPress={() => FIREBASE_AUTH.signOut()}>
+        Logout
+      </Text>
+          </View>
+        <View style={styles.divider} />
         <Text style={styles.welcomeMessage}>
           Welcome! We're glad you're here. How do you want to improve your mental health today?
         </Text>
@@ -126,15 +132,26 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  divider: {
+    height: 2,
+  backgroundColor: "#000",
+  marginVertical: 8,
+  opacity: 0.3,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
   header: {
     paddingTop: 60,
-    paddingBottom: 30,
+    paddingBottom: 10,
     paddingHorizontal: 20,
   },
+  headerRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
   greeting: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -201,5 +218,10 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  logout: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "600",
   },
 });
