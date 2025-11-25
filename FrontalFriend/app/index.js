@@ -44,7 +44,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.greeting}>Hi {getFirstName()}!</Text>
         <Text style={styles.welcomeMessage}>
-          Welcome, we're glad you're here. Where do you want to take your mental health today?
+          Welcome! We're glad you're here. How do you want to improve your mental health today?
         </Text>
       </LinearGradient>
 
@@ -62,7 +62,7 @@ export default function HomeScreen() {
               <Text style={styles.iconText}>💬</Text>
             </View>
             <Text style={styles.cardTitle}>Chat</Text>
-            <Text style={styles.cardDescription}>Talk with AI support anytime</Text>
+            <Text style={styles.cardDescription}>Talk with AI for emotional support</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -73,7 +73,7 @@ export default function HomeScreen() {
               <Text style={styles.iconText}>🧘</Text>
             </View>
             <Text style={styles.cardTitle}>Relax</Text>
-            <Text style={styles.cardDescription}>Calm your mind with videos</Text>
+            <Text style={styles.cardDescription}>Calm your mind with grounding videos</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -95,7 +95,7 @@ export default function HomeScreen() {
               <Text style={styles.iconText}>💪</Text>
             </View>
             <Text style={styles.cardTitle}>Physical Health</Text>
-            <Text style={styles.cardDescription}>Track your wellness</Text>
+            <Text style={styles.cardDescription}>Log activity to boost your well-being</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -106,7 +106,7 @@ export default function HomeScreen() {
               <Text style={styles.iconText}>📞</Text>
             </View>
             <Text style={styles.cardTitle}>Contact</Text>
-            <Text style={styles.cardDescription}>Reach out for help</Text>
+            <Text style={styles.cardDescription}>Reach out for help from CAPS</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -117,7 +117,7 @@ export default function HomeScreen() {
               <Text style={styles.iconText}>📄</Text>
             </View>
             <Text style={styles.cardTitle}>Documents</Text>
-            <Text style={styles.cardDescription}>Important information</Text>
+            <Text style={styles.cardDescription}>Store important information</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

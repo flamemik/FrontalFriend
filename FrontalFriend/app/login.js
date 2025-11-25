@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
 import { FIREBASE_AUTH } from '../FirebaseConfig';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail} from 'firebase/auth';
 import { useRouter } from 'expo-router';
 
 const Login = () => {
@@ -16,7 +16,7 @@ const Login = () => {
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in successfully:', response.user);
-      alert('Login Successful!');
+      //alert('Login Successful!');
       router.replace('/');
     } catch (error) {
       console.error('Error signing in:', error);
@@ -67,9 +67,10 @@ const Login = () => {
     }
   };
 
+
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>
-      <Text style={styles.h1}>FrontalFriend</Text>
+      <Text style={styles.h1}>FrontalFriend 🧠</Text>
       
       <TextInput
         value={email}
@@ -94,6 +95,14 @@ const Login = () => {
         <View style={{ gap: 10 }}>
           <Button title="Login" onPress={signIn} />
           <Button title="Create Account" onPress={signUp} />
+          
+          <Text 
+    style={{ color: 'blue', textAlign: 'center', marginTop: 5 }}
+    onPress={() => router.push('/forgotPassword')}
+  >
+    Forgot Password?
+          </Text>
+
         </View>
       )}
     </KeyboardAvoidingView>
