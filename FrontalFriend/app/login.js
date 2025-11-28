@@ -1,15 +1,45 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Switch, StyleSheet, Text, View, TextInput, Button, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
 import { FIREBASE_AUTH } from '../FirebaseConfig';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail} from 'firebase/auth';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+
+async function save(key, value) {
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function getValueFor(key) {
+  let result = await SecureStore.getItemAsync(key);
+  return result;
+}
+
+async function deleteKey(key) {
+  await SecureStore.deleteItemAsync(key);
+}
+
+async function construct_values(setEmail, setPassword, setIsEnabled) {
+  if (await getValueFor('remember-me') === 'true') {
+    setIsEnabled(true);
+    setEmail(await getValueFor('email'));
+    setPassword(await getValueFor('password'));
+  }
+}
 
 const Login = () => {
+  const [loading, setLoading] = useState(false);
+  const [rememberMeEnabled, setIsEnabled] = useState(false)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const auth = FIREBASE_AUTH;
   const router = useRouter();
+  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+
+  useEffect(() => {
+    (async () => {
+      await construct_values(setEmail, setPassword, setIsEnabled);
+    })();
+  }, []);
 
   const signIn = async () => {
     setLoading(true);
@@ -17,6 +47,16 @@ const Login = () => {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in successfully:', response.user);
       //alert('Login Successful!');
+      if (rememberMeEnabled === true) {
+        await save('remember-me', 'true');
+        await save('password', password);
+        await save('email', email);
+      } else {
+        await save('remember-me', 'false');
+        await deleteKey('password');
+        await deleteKey('email');
+      }
+      console.log(rememberMeEnabled);
       router.replace('/');
     } catch (error) {
       console.error('Error signing in:', error);
@@ -45,6 +85,16 @@ const Login = () => {
       const response = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User signed up successfully:', response.user);
       alert('Account created successfully!');
+      if (rememberMeEnabled === true) {
+        await save('remember-me', 'true');
+        await save('password', password);
+        await save('email', email);
+      } else {
+        await save('remember-me', 'false');
+        await deleteKey('password');
+        await deleteKey('email');
+      }
+      console.log(rememberMeEnabled);
       router.replace('/');
     } catch (error) {
       console.error('Error signing up:', error);
@@ -88,7 +138,15 @@ const Login = () => {
         autoCapitalize="none"
         onChangeText={setPassword}
       />
+      <View style={{flexDirection: 'row', paddingLeft:10, paddingRight:10, alignItems: 'center'}}>
+      <Text style={{textAlign: 'left'}}>Remember Me: </Text>
 
+      <Switch
+        trackColor={{false: '#7d7d7d', true: '#002b75'}}
+        value={rememberMeEnabled}
+        onValueChange={toggleSwitch}
+        style={{paddingLeft: 100}}
+      /></View>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
