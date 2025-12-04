@@ -112,7 +112,7 @@ export default function HomeScreen() {
               <Text style={styles.iconText}>📞</Text>
             </View>
             <Text style={styles.cardTitle}>Contact</Text>
-            <Text style={styles.cardDescription}>Reach out for help from CAPS</Text>
+            <Text style={styles.cardDescription}>Reach out for help from resources</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
