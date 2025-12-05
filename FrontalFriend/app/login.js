@@ -4,6 +4,7 @@ import { FIREBASE_AUTH } from '../FirebaseConfig';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail} from 'firebase/auth';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { syncSupabaseAuth } from './syncSupabaseAuth';
 
 async function save(key, value) {
   await SecureStore.setItemAsync(key, value);
@@ -46,6 +47,8 @@ const Login = () => {
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in successfully:', response.user);
+      // ⭐ Sync Firebase → Supabase
+    await syncSupabaseAuth();   
       if (rememberMeEnabled === true) {
         await save('remember-me', 'true');
         await save('password', password);
@@ -84,6 +87,8 @@ const Login = () => {
       const response = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User signed up successfully:', response.user);
       alert('Account created successfully!');
+      // ⭐ Sync Firebase → Supabase for new account
+    await syncSupabaseAuth();
       if (rememberMeEnabled === true) {
         await save('remember-me', 'true');
         await save('password', password);
